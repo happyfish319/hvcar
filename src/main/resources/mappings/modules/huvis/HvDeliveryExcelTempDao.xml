@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.huvis.dao.HvDeliveryExcelTempDao">
+	
+	<insert id="insert">
+		INSERT INTO hv_delivery_excel_temp(
+			 id
+			,order_id
+			,out_day
+			,pl_nm
+			,pl_cd
+			,tito_cd
+			,car_no_cls
+			,logistics
+			,logistics_cd
+			,car_no
+			,drv_name
+			,drv_phone
+			,province
+			,province_cd
+			,del_addr
+			,cus_cd
+			,del_place
+			,do_seq
+			,lot
+			,lot_nm
+			,grade
+			,bal_wgt
+			,bal_cnt
+			,qty_unit
+			,to_qty
+			,total_qty
+			,emp_no
+			,emp_nm
+			,rmk
+			,remarks
+			,create_by
+			,create_date
+			,update_by
+			,update_date
+			,del_flag	
+		) VALUES (
+			#{id},
+			IFNULL(#{orderId},''),
+			IFNULL(#{outDay},''),
+			IFNULL(#{plNm},''),
+			IFNULL(#{plCd},''),
+			IFNULL(#{titoCd},''),
+			IFNULL(#{carNoCls},''),
+			IFNULL(#{logistics},''),
+			IFNULL(#{logisticsCd},''),
+			IFNULL(#{carNo},''),
+			IFNULL(#{drvName},''),
+			IFNULL(#{drvPhone},''),
+			IFNULL(#{province},''),
+			IFNULL(#{provinceCd},''),
+			IFNULL(#{delAddr},''),
+			IFNULL(#{cusCd},''),
+			IFNULL(#{delPlace},''),
+			IFNULL(#{doSeq},''),
+			IFNULL(#{lot},''),
+			IFNULL(#{lotNm},''),
+			IFNULL(#{grade},''),
+			IFNULL(#{balWgt},''),
+			IFNULL(#{balCnt},''),
+			IFNULL(#{qtyUnit},''),
+			IFNULL(#{toQty},''),
+			IFNULL(#{totalQty},''),
+			IFNULL(#{empNo},''),
+			IFNULL(#{empNm},''),
+			IFNULL(#{rmk},''),
+			IFNULL(#{remarks},''),
+			IFNULL(#{createBy.id},''), 
+			IFNULL(#{createDate},''), 
+			IFNULL(#{updateBy.id},''), 
+			IFNULL(#{updateDate},''),
+			IFNULL(#{delFlag},'')
+		)
+	</insert>
+	
+	<select id="findList"  resultType="HvDeliveryExcelTemp" parameterType="HvDeliveryExcelTemp">
+		SELECT distinct a.order_id AS "orderId"
+			,a.out_day AS "outDay"
+			,(select label from sys_dict o where a.pl_cd = o.value and o.type='branch_office')  AS "plNm"
+			,a.pl_cd AS "plCd"
+			,a.tito_cd AS "titoCd"
+			,a.car_no_cls AS "carNoCls"
+			,a.logistics_cd AS "logisticsCd"
+			,(select name from sys_office o where a.logistics_cd = o.id) as "logistics"
+			,a.car_no AS "carNo"
+			,a.province_cd AS "provinceCd"
+			,(select name from sys_area ar where LOWER(a.province_cd) = ar.code) as "province"
+			,a.drv_name AS "drvName"
+			,a.drv_phone AS "drvPhone"
+			,a.cus_cd AS "cusCd"
+			,a.del_addr AS "delAddr"
+			,a.del_place AS "delPlace"
+			,a.emp_no  AS "empNo"
+			,a.emp_nm AS "empNm"
+			,b.do_seq AS "doSeq"
+			,b.lot AS "lot"
+			,b.lot_nm AS "lotNm"
+			,b.grade AS "grade"
+			,b.bal_wgt AS "balWgt"
+			,b.bal_cnt AS "balCnt"
+			,b.qty_unit AS "qtyUnit"
+			,b.to_qty AS "toQty"
+			,b.total_qty AS "totalQty"
+			,b.rmk
+		FROM hv_delivery_mst a,hv_delivery_car_dtl b where a.order_id = b.order_id and a.car_no_cls = b.car_no_cls and a.del_flag = #{DEL_FLAG_NORMAL}
+		<if test="carNo != null and carNo != ''">
+			AND a.car_no like
+					<if test="dbName == 'oracle'">'%'||#{carNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{carNo}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{carNo}, '%')</if>
+		</if>
+		<if test="orderId != null and orderId != ''">
+			AND a.order_id like
+					<if test="dbName == 'oracle'">'%'||#{orderId}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{orderId}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{orderId}, '%')</if>
+		</if>
+		<if test="outDay != null and outDay != ''">
+			AND a.out_day like
+					<if test="dbName == 'oracle'">'%'||#{outDay}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{outDay}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{outDay}, '%')</if>
+		</if>
+		<if test="state != null and state != ''">
+			AND a.state like
+					<if test="dbName == 'oracle'">'%'||#{state}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{state}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{state}, '%')</if>
+		</if>
+		<!-- 数据范围过滤 -->
+		${sqlMap.dsf}
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.id
+			</otherwise>
+		</choose>
+	</select>
+</mapper>

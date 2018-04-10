@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.huvis.dao.HvCarLocationDtlDao">
+
+	<sql id="carLocationColumns">
+		 a.id
+		,a.order_mst_id AS "orderMstId"
+		,a.car_no		AS "carNo"
+		,a.location_time	AS "locationTime"
+		,a.x			
+		,a.y
+		,t.real_warn_yn	AS "realWarnYn"
+		,a.real_warn_option	AS "realWarnOption"
+		,a.real_warn_option_time	AS "realWarnOptionTime"
+		,a.remarks
+		,a.create_by AS "createBy.id"
+		,a.create_date
+		,a.update_by AS "updateBy.id"
+		,a.update_date
+		,a.del_flag
+    </sql>
+    
+	<select id="findAllList" resultType="HvCarLocationDtl" >
+		SELECT
+			<include refid="carLocationColumns"/>
+		FROM hv_car_location_dtl a,hv_car_location_dtl_temp t
+		WHERE a.order_mst_id = #{orderMstId}
+		AND   t.real_warn_yn = '1'
+		and   a.id = t.location_id
+		order by a.location_time desc
+	</select>
+	
+	<select id="findLastData" resultType="HvCarLocationDtl" >
+		SELECT <include refid="carLocationColumns"/>
+		 FROM hv_car_location_dtl a,hv_delivery_mst b 
+		where a.order_mst_id = b.id 
+		and order_mst_id = #{orderMstId}
+		order by a.location_time desc
+		limit 1
+	</select>
+	
+</mapper>

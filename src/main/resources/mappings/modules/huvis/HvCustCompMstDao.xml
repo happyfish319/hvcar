@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.huvis.dao.HvCustCompMstDao">
+
+	<sql id="custCompColumns">
+    	 a.id
+		,a.cust_comp_id as custCompId
+      	,a.cust_comp_cd as custCompCd
+      	,a.cust_comp_nm as custCompNm
+      	,a.short_nm     as shortNm
+      	,a.link_man		as linkMan
+      	,a.tel1
+      	,a.tel2
+      	,a.addr
+      	,a.remarks
+		,a.create_by AS "createBy.id"
+		,a.create_date
+		,a.update_by AS "updateBy.id"
+		,a.update_date
+		,a.del_flag
+    </sql>
+    
+    <sql id="sqlJoins">
+		LEFT JOIN sys_user u ON u.id = a.create_by
+		LEFT JOIN sys_office o ON o.id =  u.office_id
+    </sql> 
+    
+	<!-- 分页查询用户信息 -->
+	<select id="findList" resultType="HvCustCompMst">
+		SELECT
+			<include refid="custCompColumns"/>
+		FROM hv_cust_comp_mst a   <include refid="sqlJoins"/> 
+		WHERE a.del_flag = #{DEL_FLAG_NORMAL}
+		<if test="custCompNm != null and custCompNm != ''">
+			AND a.cust_comp_nm like
+					<if test="dbName == 'oracle'">'%'||#{custCompNm}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{custCompNm}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{custCompNm}, '%')</if>
+		</if>
+		<!-- 数据范围过滤 -->
+		${sqlMap.dsf}
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.id
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO hv_cust_comp_mst(
+			id,
+			cust_comp_id,
+			cust_comp_cd,
+			cust_comp_nm,
+			short_nm,
+			link_man,
+			tel1,
+			tel2,
+			addr,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{custCompId},
+			(SELECT CONCAT('HV',YEAR(NOW()),A.cd) from (SELECT no+1 as cd from hv_logistics_comp_mst ORDER by no DESC LIMIT 1)A), 
+			#{custCompNm},
+			#{shortNm},
+			#{linkMan},
+			#{tel1},
+			#{tel2},
+			#{addr},
+			#{createBy.id}, 
+			#{createDate}, 
+			#{updateBy.id}, 
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE hv_cust_comp_mst SET 	
+			cust_comp_id = #{custCompId},
+			cust_comp_nm = #{custCompNm},
+			short_nm = #{shortNm},
+			link_man = #{linkMan},
+			tel1 = #{tel1},
+			tel2 = #{tel2},
+			addr = #{addr},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			del_flag = #{delFlag}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE hv_cust_comp_mst SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	<select id="findByIdIn" resultType="HvCustCompMst">
+		SELECT 
+			<include refid="custCompColumns"/>
+		from hv_cust_comp_mst a where 
+		<where>
+			id in (${id});
+		</where>		
+	</select>
+	
+	<select id="get" resultType="HvCustCompMst">
+		SELECT
+			<include refid="custCompColumns"/>
+		FROM hv_cust_comp_mst a
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="getInfoByCode" resultType="HvCustCompMst" parameterType="HvCustCompMst">
+		SELECT 
+			*
+		from hv_cust_comp_mst a 
+		where 	a.cust_comp_id = '${cust_comp_id}'
+	</select>
+	
+</mapper>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.huvis.dao.HvLogisticsCarDtlDao">
+
+	<sql id="logisicsCarColumns">
+    	 hlcd.id
+    	 ,o.name AS "office.name"
+		,hlcd.logistics_id as "office.id"
+		,hlcd.CAR_NO as carNo
+		,hlcd.car_state as carState
+		,(select label from sys_dict o where hlcd.car_state = o.value and o.type='car_state') as "carStateNm"
+		,hlcd.car_ton  as carTon
+		,hlcd.car_type as carType
+		,(select label from sys_dict o where hlcd.car_type = o.value and o.type='car_type') as "carTypeNm"
+		,hlcd.drv_Tel as drvTel
+		,hlcd.check_date as checkDate
+		,hlcd.drv_id as drvId
+		,hlcd.DRV_NAME as drvName
+		,hlcd.drv_type as drvType
+		,(select label from sys_dict o where hlcd.drv_type = o.value and o.type='drv_type') as "drvTypeNm"
+		,hlcd.create_by 
+		,hlcd.create_date
+		,hlcd.update_by
+		,hlcd.update_date
+		,hlcd.del_flag
+		,hlcd.remarks
+    </sql>
+    
+    <sql id="sqlJoins">
+		JOIN sys_user u ON u.id = hlcd.create_by
+		JOIN sys_office o ON o.id = hlcd.logistics_id
+    </sql>
+    
+	<!-- 分页查询用户信息 -->
+	<select id="findList" resultType="HvLogisticsCarDtl">
+		SELECT 
+			<include refid="logisicsCarColumns"/>
+		 FROM hv_logistics_car_dtl hlcd 
+		<include refid="sqlJoins"/>
+		WHERE  hlcd.del_flag = #{DEL_FLAG_NORMAL}
+		<if test="carNo != null and carNo != ''">
+			AND hlcd.car_no like
+					<if test="dbName == 'oracle'">'%'||#{carNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{carNo}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{carNo}, '%')</if>
+		</if>
+		<if test="drvName != null and drvName != ''">
+			AND hlcd.DRV_NAME like
+					<if test="dbName == 'oracle'">'%'||#{drvName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{drvName}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{drvName}, '%')</if>
+		</if>
+		<if test="office != null and office.id != null and office.id != ''">
+			AND hlcd.logistics_id = #{office.id} 
+		</if>
+		<!-- 数据范围过滤 -->
+		${sqlMap.dsf}
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY hlcd.id
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO hv_logistics_car_dtl(
+			id
+			,logistics_id
+			,CAR_NO
+			,DRV_NAME
+			,drv_id
+			,drv_type
+			,drv_tel
+			,car_ton
+			,car_type
+			,car_state
+			,check_date
+			,use_yn
+			,create_by
+			,create_date
+			,update_by
+			,update_date
+			,remarks
+			,del_flag
+
+		) VALUES (
+			#{id},
+			#{office.id},
+			<!-- (SELECT CONCAT('WL',YEAR(NOW()),A.cd) from (SELECT no+1 as cd from hv_logistics_comp_mst ORDER by no DESC LIMIT 1)A), -->
+			#{carNo},
+			#{drvName},
+			#{drvId},
+			#{drvType},
+			#{drvTel},
+			#{carTon},
+			#{carType},
+			'1',
+			#{checkDate},
+			#{useYn},
+			#{createBy.id}, 
+			#{createDate}, 
+			#{updateBy.id}, 
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE hv_logistics_car_dtl SET 	
+			logistics_id = #{office.id},
+			CAR_NO = #{carNo},
+			DRV_NAME = #{drvName},
+			drv_id = #{drvId},
+			drv_type = #{drvType},
+			drv_tel = #{drvTel},
+			car_ton = #{carTon},
+			car_type = #{carType},
+			car_state = #{carState},
+			check_date = #{checkDate},
+			use_yn = #{useYn},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			del_flag = #{delFlag}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE hv_logistics_car_dtl SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	<select id="get" resultType="HvLogisticsCarDtl">
+		SELECT
+		<include refid="logisicsCarColumns"/>
+		FROM hv_logistics_car_dtl hlcd 
+		<include refid="sqlJoins"/>
+		WHERE hlcd.id = #{id}
+	</select>
+	
+	<select id="getInfoByLogisticsId" resultType="HvLogisticsCarDtl" parameterType="HvLogisticsCarDtl">
+		SELECT 
+			*
+		from hv_logistics_car_dtl a 
+		where 	a.logistics_id = ${logisticsId} 
+	</select>
+	
+	
+	<update id="saveOrder"  parameterType="HvLogisticsCarDtl">
+		update hv_delivery_mst a inner join  (SELECT car_no,drv_name,drv_tel FROM hv_logistics_car_dtl WHERE id = '${id}' ) b
+		   set a.car_no=b.car_no
+			 , a.drv_name=b.drv_name
+			 , a.drv_phone=b.drv_tel
+			 , a.state='2'
+		WHERE a.id = '${orderId}'
+	</update>
+	
+</mapper>

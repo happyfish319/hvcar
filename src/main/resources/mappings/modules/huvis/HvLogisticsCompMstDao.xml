@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.huvis.dao.HvLogisticsCompMstDao">
+
+	<sql id="logisicsColumns">
+    	 a.id
+    	,a.logistics_id AS "office.id"
+    	,o.name AS "office.name"
+    	,a.short_nm as shortNm
+    	,a.link_man as linkMan
+		,a.tel1
+		,a.tel2
+		,a.addr
+		,a.create_by
+		,a.create_date
+		,a.update_by
+		,a.update_date
+		,a.del_flag
+		,a.remarks
+		,(SELECT COUNT(*) FROM hv_logistics_car_dtl b
+		where a.logistics_id = b.logistics_id AND  b.del_flag = '0' ) AS "carCnt"
+    </sql>
+    
+    <sql id="sqlJoins">
+		JOIN sys_user u ON u.id = a.create_by
+		JOIN sys_office o ON o.id =  a.logistics_id
+    </sql>
+    
+	<!-- 分页查询用户信息 -->
+	<select id="findList" resultType="HvLogisticsCompMst">
+		SELECT
+			<include refid="logisicsColumns"/>
+		FROM hv_logistics_comp_mst a  
+		<include refid="sqlJoins"/> 
+		WHERE a.del_flag = #{DEL_FLAG_NORMAL}
+		<if test="office != null and office.id != null and office.id != ''">
+			AND a.logistics_id = #{office.id} 
+		</if>
+		<if test="shortNm != null and shortNm != ''">
+			AND a.short_nm like
+					<if test="dbName == 'oracle'">'%'||#{shortNm}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{shortNm}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{shortNm}, '%')</if>
+		</if>
+		<!-- 数据范围过滤 -->
+		${sqlMap.dsf}
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.id
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO hv_logistics_comp_mst(
+			id,
+			logistics_id,
+			logistics_cd,
+			short_nm,
+			link_man,
+			tel1,
+			tel2,
+			addr,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{office.id},
+			(SELECT CONCAT('WL',YEAR(NOW()),A.cd) from (SELECT no+1 as cd from hv_logistics_comp_mst ORDER by no DESC LIMIT 1)A), 
+			#{shortNm},
+			#{linkMan},
+			#{tel1},
+			#{tel2},
+			#{addr},
+			#{createBy.id}, 
+			#{createDate}, 
+			#{updateBy.id}, 
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE hv_logistics_comp_mst SET 	
+			logistics_id = #{office.id},
+			short_nm = #{shortNm},
+			link_man = #{linkMan},
+			tel1 = #{tel1},
+			tel2 = #{tel2},
+			addr = #{addr},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			del_flag = #{delFlag}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE hv_logistics_comp_mst SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	<select id="findByIdIn" resultType="HvLogisticsCompMst">
+		SELECT 
+			<include refid="logisicsColumns"/>
+		from hv_logistics_comp_mst a where 
+		<where>
+			id in (${id});
+		</where>		
+	</select>
+	
+	<select id="get" resultType="HvLogisticsCompMst">
+		SELECT
+			<include refid="logisicsColumns"/> 
+		FROM hv_logistics_comp_mst a <include refid="sqlJoins"/> 
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="getInfoByCode" resultType="HvLogisticsCompMst" parameterType="HvLogisticsCompMst">
+		SELECT
+			<include refid="logisicsColumns"/> 
+		FROM hv_logistics_comp_mst a <include refid="sqlJoins"/> 
+		where 	o.id = '${logisticsCd}'
+	</select>
+	
+</mapper>

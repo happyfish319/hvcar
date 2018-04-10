@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.huvis.dao.HvDeliveryCarDtlDao">
+
+	<sql id="deliveryCarDtlColumns">
+    	 a.id
+		,a.order_id   AS "orderId"
+		,a.car_no_cls AS "carNoCls"
+		,a.do_seq		AS  "doSeq"
+		,a.lot
+		,a.lot_nm		AS 	"lotNm"
+		,a.grade
+		,a.bal_wgt		AS  "balWgt"
+		,a.bal_cnt		AS  "balCnt"
+		,a.qty_unit		AS	"qtyUnit"
+		,a.to_qty		AS	"toQty"
+		,a.total_qty	AS  "totalQTY"
+		,a.rmk
+      	,a.remarks
+		,a.create_by AS "createBy.id"
+		,a.create_date
+		,a.update_by AS "updateBy.id"
+		,a.update_date
+		,a.del_flag
+    </sql>
+    
+	<insert id="insert">
+		INSERT INTO hv_delivery_car_dtl(
+			 id
+			,order_id  
+			,car_no_cls 
+			,do_seq
+			,lot
+			,lot_nm
+			,grade
+			,bal_wgt
+			,bal_cnt
+			,qty_unit
+			,to_qty
+			,total_qty
+			,remarks
+			,create_by
+			,create_date
+			,update_by
+			,update_date
+			,del_flag
+		) VALUES (
+			#{id},
+			#{orderId},
+			#{carNoCls},
+			#{doSeq},
+			#{lot},
+			#{lotNm},
+			#{grade},
+			#{balWgt}, 
+			#{balCnt}, 
+			#{qtyUnit}, 
+			#{toQty},
+			#{totalQty},
+			#{remarks},
+			#{createBy.id}, 
+			#{createDate}, 
+			#{updateBy.id}, 
+			#{updateDate},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE hv_delivery_car_dtl SET 	
+			do_seq = #{doSeq},
+			lot = #{lot},
+			lot_nm = #{lotNm},
+			grade = #{grade},
+			bal_wgt = #{balWgt},
+			bal_cnt = #{balCnt},
+			qty_unit = #{qtyUnit},
+			to_qty = #{toQty},
+			total_qty = #{totalQty},
+			rmk = #{rmk},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE hv_delivery_car_dtl SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	<select id="findAllList" resultType="HvDeliveryCarDtl" parameterType="HvDeliveryCarDtl">
+		SELECT
+			<include refid="deliveryCarDtlColumns"/>
+		FROM hv_delivery_car_dtl a   left join hv_delivery_mst b on a.order_id = b.order_id and a.car_no_cls = b.car_no_cls
+		WHERE a.del_flag = #{DEL_FLAG_NORMAL}
+		AND a.order_id = #{orderId}
+		AND a.car_no_cls = #{carNoCls}
+		ORDER BY a.order_id, a.car_no_cls
+	</select>
+	
+	<select id="findByIdIn" resultType="HvDeliveryCarDtl">
+		SELECT 
+			<include refid="deliveryCarDtlColumns"/>
+		from hv_delivery_car_dtl a where 
+		<where>
+			id in (${id});
+		</where>		
+	</select>
+	
+	<select id="get" resultType="HvDeliveryCarDtl">
+		SELECT
+			<include refid="deliveryCarDtlColumns"/>
+		FROM hv_delivery_car_dtl a
+		WHERE a.id = #{id}
+	</select>
+	
+	<update id="deleteByMstId" parameterType="HvDeliveryCarDtl">
+		UPDATE hv_delivery_car_dtl SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		Where order_id = #{orderId}
+		AND car_no_cls = #{carNoCls}
+	</update>
+	
+	<select id="getInfoByCode" resultType="HvDeliveryCarDtl" parameterType="HvDeliveryCarDtl">
+		SELECT 
+			*
+		from hv_delivery_car_dtl a 
+		where 	a.order_id = '${orderId}'
+	</select>
+	
+</mapper>

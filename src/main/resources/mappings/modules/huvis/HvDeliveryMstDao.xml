@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.huvis.dao.HvDeliveryMstDao">
+
+	<sql id="deliveryMstColumns">
+		 a.id
+    	 ,a.order_id  	AS "orderId"
+		,a.out_day		AS "outDay"
+		,a.pl_cd		AS "plCd"
+		,(select label from sys_dict o where a.pl_cd = o.value and o.type='branch_office')  AS "plNm"
+		,a.tito_cd	AS "titoCd"
+		,a.car_no_cls		AS "carNoCls"
+		,a.state		AS  "state"
+		,(select label from sys_dict o where a.state = o.value and o.type='car_state') as "stateNm"
+		,a.car_no		AS "carNo"
+		,a.logistics_cd 	AS "logisticsCd"
+		,(select name from sys_office o where a.logistics_cd = o.id) as "logisticsNm"
+		,a.factory_out_time	AS "factoryOutTime"
+		,a.factory_in_time	AS "factoryInTime"
+		,a.end_time		AS "endTime"
+		,a.drv_name		AS "drvName"
+		,a.drv_phone	AS "drvPhone"
+		,a.province_cd	AS "provinceCd"
+		,(select name from sys_area ar where a.province_cd = ar.code) as "provinceNm"
+		,a.del_addr		AS "delAddr"
+		,a.cus_cd		AS "cusCd"
+		,a.del_place	AS "delPlace"
+		,a.emp_no		AS "empNo"
+		,a.emp_nm		AS "empNm"
+		,a.warn_yn	AS "warnYn"
+		,a.img_url AS "imgUrl"
+		,(SELECT COUNT(1) FROM hv_car_location_dtl d,hv_car_location_dtl_temp t
+WHERE t.location_id = d.id and a.id = d.order_mst_id and t.real_warn_yn = '1')	AS "warnCnt" 
+		,a.warn_option_time	AS "warnOptionTime"
+		,a.warn_distance AS "warnDistance"
+      	,a.remarks
+		,a.create_by AS "createBy.id"
+		,a.create_date
+		,a.update_by AS "updateBy.id"
+		,a.update_date
+		,a.del_flag
+		
+    </sql>
+    
+    
+     <sql id="sqlJoins">
+		JOIN sys_user u ON u.id = a.create_by or u.login_name = a.cus_cd
+		LEFT JOIN sys_office o ON o.id =  a.logistics_cd
+    </sql>
+    
+	<!-- 分页查询用户信息 -->
+	<select id="findList" resultType="HvDeliveryMst">
+		SELECT
+			distinct <include refid="deliveryMstColumns"/>
+		FROM hv_delivery_mst a  
+		<include refid="sqlJoins"/> 
+		WHERE a.del_flag = #{DEL_FLAG_NORMAL}
+		<if test="carNo != null and carNo != ''">
+			AND a.car_no like
+					<if test="dbName == 'oracle'">'%'||#{carNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{carNo}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{carNo}, '%')</if>
+		</if>
+		<if test="orderId != null and orderId != ''">
+			AND a.order_id like
+					<if test="dbName == 'oracle'">'%'||#{orderId}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{orderId}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{orderId}, '%')</if>
+		</if>
+		<if test="outDay != null and outDay != ''">
+			AND a.out_day like
+					<if test="dbName == 'oracle'">'%'||#{outDay}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{outDay}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{outDay}, '%')</if>
+		</if>
+		<if test="state != null and state != ''">
+			AND a.state like
+					<if test="dbName == 'oracle'">'%'||#{state}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{state}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{state}, '%')</if>
+		</if>
+		<!-- 数据范围过滤 -->
+		${sqlMap.dsf}
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.warn_cnt,a.out_day,a.order_id desc
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO hv_delivery_mst(
+			 id
+			,order_id
+			,out_day
+			,pl_cd
+			,tito_cd
+			,car_no_cls
+			,state		
+			,car_no		
+			,logistics_cd 	
+			,factory_out_time	
+			,factory_in_time	
+			,end_time		
+			,drv_name		
+			,drv_phone	
+			,province_cd	
+			,del_addr		
+			,cus_cd		
+			,del_place	
+			,emp_no		
+			,emp_nm		
+			,warn_cnt
+	      	,remarks
+			,create_by
+			,create_date
+			,update_by
+			,update_date
+			,del_flag
+		) VALUES (
+			#{id},
+			#{orderId},
+			#{outDay},
+			#{plCd},
+			#{titoCd},
+			#{carNoCls},
+			#{state},
+			#{carNo},
+			#{logisticsCd},
+			#{factoryOutTime},
+			#{factoryInTime},
+			#{endTime},
+			#{drvName},
+			#{drvPhone},
+			#{provinceCd},
+			#{delAddr},
+			#{cusCd},
+			#{delPlace},
+			#{empNo},
+			#{empNm},
+			'0',
+			#{remarks},
+			#{createBy.id}, 
+			#{createDate}, 
+			#{updateBy.id}, 
+			#{updateDate},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE hv_delivery_mst SET 	
+			out_day = #{outDay},
+			pl_cd = #{plCd},
+			tito_cd = #{titoCd},
+			state = #{state},
+			car_no = #{carNo},
+			logistics_cd = #{logisticsCd},
+			factory_out_time = #{factoryOutTime},
+			factory_in_time = #{factoryInTime},
+			end_time = #{endTime},
+			drv_name = #{drvName},
+			drv_phone = #{drvPhone},
+			province_cd = #{provinceCd},
+			del_addr = #{delAddr},
+			cus_cd = #{cusCd},
+			del_place = #{delPlace},
+			emp_no = #{empNo},
+			emp_nm = #{empNm},
+			warn_yn = #{warnYn},
+			warn_option_time = #{warnOptionTime},
+			warn_distance = #{warnDistance},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			del_flag = #{delFlag}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE hv_delivery_mst a SET 
+			a.del_flag = #{DEL_FLAG_DELETE}
+		WHERE a.id = #{id}
+	</update>
+	
+	<select id="get" resultType="HvDeliveryMst" >
+		SELECT
+			distinct <include refid="deliveryMstColumns"/>
+		FROM hv_delivery_mst a  
+		<include refid="sqlJoins"/> 
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="getCount" resultType="Integer" parameterType="HvDeliveryMst" >
+		SELECT count(*) FROM hv_delivery_mst a WHERE a.order_id = #{orderId} and a.car_no_cls = #{carNoCls}
+	</select>
+	
+</mapper>
