@@ -2,7 +2,7 @@
 <%@ include file="/WEB-INF/views/include/taglib.jsp"%>
 <html>
 <head>
-	<title>派车管理</title>
+	<title>车辆确认管理</title>
 	<meta name="decorator" content="default"/>
 	<script type="text/javascript">
 		$(document).ready(function() {
@@ -19,7 +19,7 @@
 		function page(n,s){
 			if(n) $("#pageNo").val(n);
 			if(s) $("#pageSize").val(s);
-			$("#searchForm").attr("action","${ctx}/huvis/delivery/carStateList");
+			$("#searchForm").attr("action","${ctx}/huvis/delivery/carStateConfirmList");
 			$("#searchForm").submit();
 	    	return false;
 	    }
@@ -27,9 +27,9 @@
 </head>
 <body>
 	<ul class="nav nav-tabs">
-		<li class="active"><a href="${ctx}/huvis/delivery/carStateList">派车列表</a></li>
+		<li class="active"><a href="${ctx}/huvis/delivery/carStateConfirmList">车辆确认列表</a></li>
 	</ul>
-	<form:form id="searchForm" modelAttribute="hvDeliveryMst" action="${ctx}/huvis/delivery/carStateList" method="post" class="breadcrumb form-search ">
+	<form:form id="searchForm" modelAttribute="hvDeliveryMst" action="${ctx}/huvis/delivery/carStateConfirmList" method="post" class="breadcrumb form-search ">
 		<input id="pageNo" name="pageNo" type="hidden" value="${page.pageNo}"/>
 		<input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
 		<sys:tableSort id="orderBy" name="orderBy" value="${page.orderBy}" callback="page();"/>
@@ -42,11 +42,6 @@
 				title="部门" url="/sys/office/treeData?type=2" cssClass="input-small" allowClear="true" notAllowSelectParent="true"/></li> 
 			<li><label>姓&nbsp;&nbsp;&nbsp;名：</label><form:input path="name" htmlEscape="false" maxlength="50" class="input-medium"/></li>--%>
 			<li><label>车牌号：</label><form:input path="carNo" htmlEscape="false" maxlength="50" class="input-medium"/>
-				<label>车辆状态:</label>
-				 <form:select path="state" class="input-medium">
-				 	<form:option value="2" label="待进厂"/>
-				 	<form:option value="3" label="待出厂"/>
-				</form:select>
 			</li>
 			<li class="btns"><input id="btnSubmit" class="btn btn-primary" type="submit" value="查询" onclick="return page();"/>
 				<!-- <input id="btnExport" class="btn btn-primary" type="button" value="导出"/></li> -->
@@ -68,12 +63,7 @@
 				<td>${hvDeliveryMst.factoryOutTime}</td>
 				<td>${hvDeliveryMst.stateNm}</td>
 				<td>
-				<c:if test="${hvDeliveryMst.state == '6'}">
-				<a href="${ctx}/huvis/delivery/carStateSave?id=${hvDeliveryMst.id}&state=3">进厂</a>
-				</c:if>
-				<c:if test="${hvDeliveryMst.state == '3'}">
-				<a href="${ctx}/huvis/delivery/carStateSave?id=${hvDeliveryMst.id}&state=4">出厂</a>
-				</c:if></td>
+				<a href="${ctx}/huvis/delivery/carStateConfirm?id=${hvDeliveryMst.id}">确认</a></td>
 			</tr>
 		</c:forEach>
 		</tbody>

@@ -266,6 +266,9 @@ public class HvDeliveryController extends BaseController{
 			return form(hvDeliveryMst, model);
 		}
 		hvDeliveryMstService.save(hvDeliveryMst);
+		for(HvDeliveryCarDtl entity: hvDeliveryMst.getHvDeliveryCarDtl() ){
+			hvDeliveryCarDtlService.save(entity);
+		}
 		addMessage(redirectAttributes, "保存成功,订单号：'" + hvDeliveryMst.getOrderId() + "'");
 	    return "redirect:" + adminPath + "/huvis/delivery/list?repage";
 	}
@@ -286,7 +289,7 @@ public class HvDeliveryController extends BaseController{
 	@RequestMapping(value = {"carStateList", ""})
 	public String getCarState(HvDeliveryMst hvDeliveryMst, HttpServletRequest request, HttpServletResponse response, Model model) {
 		if(hvDeliveryMst.getState()==null){
-			hvDeliveryMst.setState(HvConstant.CAR_STATE_02); //默认显示待分配
+			hvDeliveryMst.setState(HvConstant.CAR_STATE_06); //默认显示待分配
 		}
 	 Page<HvDeliveryMst> page = hvDeliveryMstService.getCarState(new Page<HvDeliveryMst>(request, response), hvDeliveryMst, true); 
         model.addAttribute("page", page);
@@ -423,6 +426,24 @@ public class HvDeliveryController extends BaseController{
 		return "modules/huvis/carDriverList";
 	}
 	
+	@RequestMapping(value = "carStateConfirm")
+	public String carStateConfirm(HvDeliveryMst hvDeliveryMst,String state, Model model, RedirectAttributes redirectAttributes,HttpServletRequest request, HttpServletResponse response) {
+		hvDeliveryMst.setState(HvConstant.CAR_STATE_06);
+		hvDeliveryMst.setConfirmTime(DateUtils.getDate("yyyy-MM-dd HH:mm:ss"));
+		hvDeliveryMstService.save(hvDeliveryMst);
+		addMessage(redirectAttributes, "保存成功");
+	    return "redirect:" + adminPath + "/huvis/delivery/carStateConfirmList?repage";
+	}
+	
+	@RequestMapping(value = {"carStateConfirmList", ""})
+	public String getCarStateConfirm(HvDeliveryMst hvDeliveryMst, HttpServletRequest request, HttpServletResponse response, Model model) {
+		if(hvDeliveryMst.getState()==null){
+			hvDeliveryMst.setState(HvConstant.CAR_STATE_02); //默认显示待分配
+		}
+	 Page<HvDeliveryMst> page = hvDeliveryMstService.getCarState(new Page<HvDeliveryMst>(request, response), hvDeliveryMst, true); 
+        model.addAttribute("page", page);
+		return "modules/huvis/carStateConfirmList";
+	}
 	
 	
 }

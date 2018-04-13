@@ -43,6 +43,7 @@ public class HvDeliveryMst extends DataEntity<HvDeliveryMst> {
 	private String warnDistance;
 	private String imgUrl;
 	private String stateNm;
+	private String confirmTime;
 	
 	private User user;		//关联用户
 	private List<HvDeliveryCarDtl> hvDeliveryCarDtl;
@@ -248,6 +249,12 @@ public class HvDeliveryMst extends DataEntity<HvDeliveryMst> {
 	}
 	public void setOffice(Office office) {
 		this.office = office;
+	}
+	public String getConfirmTime() {
+		return confirmTime;
+	}
+	public void setConfirmTime(String confirmTime) {
+		this.confirmTime = confirmTime;
 	}
 	
 }

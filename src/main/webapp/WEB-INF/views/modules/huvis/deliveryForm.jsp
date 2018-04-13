@@ -22,6 +22,7 @@
 					}
 				}
 			});
+			
 		});
 	</script>
 </head>
@@ -139,16 +140,17 @@
 	<table id="contentTable" class="table table-striped table-bordered table-condensed">
 		<thead><tr><th>产品名称</th><th>LOT</th><th>等级</th><th>每包重量</th><th>数量</th><th>重量单位</th><th>总重量</th><th>备注</th></thead>
 		<tbody>
-		<c:forEach items="${hvDeliveryMst.hvDeliveryCarDtl}" var="hvDeliveryCarDtl">
+		<c:forEach items="${hvDeliveryMst.hvDeliveryCarDtl}" var="hvDeliveryCarDtl" varStatus="status">
 			<tr>
-				<td>${hvDeliveryCarDtl.lotNm}</td>
-				<td>${hvDeliveryCarDtl.lot}</td>
-				<td>${hvDeliveryCarDtl.grade}</td>
-				<td>${hvDeliveryCarDtl.balWgt}</td>
-				<td>${hvDeliveryCarDtl.balCnt}</td>
-				<td>${hvDeliveryCarDtl.qtyUnit}</td>
-				<td>${hvDeliveryCarDtl.totalQty}</td>
-				<td>${hvDeliveryCarDtl.rmk}</td>
+				<input type="hidden" value="${hvDeliveryCarDtl.id}" name="hvDeliveryCarDtl[${status.index}].id" />
+				<td><input type="text" class="input-mini" value="${hvDeliveryCarDtl.lotNm}"    	name="hvDeliveryCarDtl[${status.index}].lotNm"	maxlength="50"/></td>
+				<td><input type="text" class="input-mini" value="${hvDeliveryCarDtl.lot}"  name="hvDeliveryCarDtl[${status.index}].lot"    maxlength="50"/></td>
+				<td><input type="text" class="input-mini" value="${hvDeliveryCarDtl.grade}" name="hvDeliveryCarDtl[${status.index}].grade"     maxlength="50"/></td>
+				<td><input type="text" class="input-mini" value="${hvDeliveryCarDtl.balWgt}" name="hvDeliveryCarDtl[${status.index}].balWgt"    maxlength="50"/></td>
+				<td><input type="text" class="input-mini" value="${hvDeliveryCarDtl.balCnt}"  name="hvDeliveryCarDtl[${status.index}].balCnt"   maxlength="50"/></td>
+				<td><input type="text" class="input-mini" value="${hvDeliveryCarDtl.qtyUnit}" name="hvDeliveryCarDtl[${status.index}].qtyUnit"   maxlength="50"/></td>
+				<td><input type="text" class="input-mini" value="${hvDeliveryCarDtl.totalQty}" name="hvDeliveryCarDtl[${status.index}].totalQty"   maxlength="50"/></td>
+				<td><input type="text" class="input-mini" value="${hvDeliveryCarDtl.rmk}"     name="hvDeliveryCarDtl[${status.index}].rmk"   maxlength="50"/></td>
 			</tr>
 		</c:forEach>
 		</tbody>

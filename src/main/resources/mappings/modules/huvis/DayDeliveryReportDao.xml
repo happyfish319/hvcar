@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.huvis.dao.DayDeliveryReportDao">
+    
+	<select id="findDayDeliveryReport" resultType="DayDeliveryReport">
+		SELECT a.order_id 	as orderId
+			  ,a.out_day 	as outDay
+			  ,a.pl_cd 		as plNm
+			  ,a.tito_cd 	as titoCd
+			  ,a.car_no_cls as carNoCls
+			  ,'计划件数' 	as planCnt
+			  ,a.car_no 	as carNo
+			  ,a.drv_name 	as drvName
+			  ,a.drv_phone 	as drvPhone
+			  ,a.province_cd 	as provinceNm
+			  ,a.del_addr 	as delAddr
+			  ,a.del_place 	as delPlace
+			  ,b.lot 		as lot
+			  ,b.lot_nm 	as lotNm
+			  ,b.do_seq 	as doSeq
+			  ,b.grade 		as grade
+			  ,b.bal_wgt 	as balWgt
+			  ,b.bal_cnt 	as balCnt
+			  ,b.total_qty 	as totalQty
+			  ,a.logistics_cd  as logisticsNm
+			  ,b.to_qty 	as toQty
+			  ,a.emp_nm 	as empNm
+			  ,b.rmk 		as rmk
+			  FROM hv_delivery_mst a LEFT JOIN hv_delivery_car_dtl b on a.order_id = b.order_id and a.car_no_cls = b.car_no_cls
+		WHERE a.del_flag = #{DEL_FLAG_NORMAL}
+		and a.state = '4'
+		<if test="carNo != null and carNo != ''">
+			AND a.car_no like
+					<if test="dbName == 'oracle'">'%'||#{carNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{carNo}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{carNo}, '%')</if>
+		</if>
+		<if test="outDay != null and outDay != ''">
+			AND a.out_day like
+					<if test="dbName == 'oracle'">'%'||#{outDay}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{outDay}+'%'</if>
+					<if test="dbName == 'mysql'">CONCAT('%', #{outDay}, '%')</if>
+		</if>
+		<!-- 数据范围过滤 -->
+		${sqlMap.dsf}
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.warn_cnt,a.out_day,a.order_id desc
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+</mapper>
